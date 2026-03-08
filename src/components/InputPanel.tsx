@@ -20,12 +20,12 @@ export function InputPanel({ value, onChange, inputType, onTypeChange }: InputPa
 
     return (
         <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col h-full transition-colors duration-200">
-            <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-colors duration-200">
-                <div className="flex items-center gap-2">
+            <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex flex-col xl:flex-row xl:items-center justify-between gap-3 transition-colors duration-200">
+                <div className="flex items-center gap-2 whitespace-nowrap flex-shrink-0">
                     <Type className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
                     <h2 className="font-semibold text-slate-800 dark:text-slate-100 text-sm">Data Input</h2>
                 </div>
-                <div className="flex bg-slate-200/50 dark:bg-slate-800 p-1 rounded-lg">
+                <div className="flex flex-wrap bg-slate-200/50 dark:bg-slate-800 p-1 rounded-lg gap-1 min-w-0">
                     {INPUT_TABS.map((tab) => {
                         const Icon = tab.icon;
                         const isActive = inputType === tab.id;
@@ -33,9 +33,9 @@ export function InputPanel({ value, onChange, inputType, onTypeChange }: InputPa
                             <button
                                 key={tab.id}
                                 onClick={() => onTypeChange(tab.id)}
-                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 ${isActive
-                                        ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm'
-                                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700/50'
+                                className={`flex items-center justify-center flex-1 sm:flex-auto gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 whitespace-nowrap ${isActive
+                                    ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm'
+                                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700/50'
                                     }`}
                             >
                                 <Icon className="w-3.5 h-3.5" />
