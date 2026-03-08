@@ -40,7 +40,7 @@ function App() {
 
       <main className="flex-1 max-w-[1600px] w-full mx-auto p-4 md:p-6 grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-6">
         {/* Left Column: Input and Lists */}
-        <div className="flex flex-col gap-6 h-[calc(100vh-8rem)]">
+        <div className="flex flex-col gap-6 h-[calc(100vh-8rem)] min-w-0">
           <div className="h-2/5 min-h-[250px]">
             <InputPanel value={htmlInput} onChange={setHtmlInput} />
           </div>
@@ -56,7 +56,7 @@ function App() {
         </div>
 
         {/* Right Column: Preview and Options */}
-        <div className="flex flex-col gap-6 h-[calc(100vh-8rem)]">
+        <div className="flex flex-col gap-6 h-[calc(100vh-8rem)] min-w-0">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-shrink-0">
             <OptionsPanel options={options} onChange={setOptions} />
             <ExportPanel table={selectedTable} />
