@@ -20,12 +20,12 @@ export function InputPanel({ value, onChange, inputType, onTypeChange }: InputPa
 
     return (
         <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col h-full transition-colors duration-200">
-            <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex flex-col xl:flex-row xl:items-center justify-between gap-3 transition-colors duration-200">
+            <div className="flex-shrink-0 px-4 py-3 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex flex-col xl:flex-row xl:items-center justify-between gap-3 transition-colors duration-200">
                 <div className="flex items-center gap-2 whitespace-nowrap flex-shrink-0">
                     <Type className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
                     <h2 className="font-semibold text-slate-800 dark:text-slate-100 text-sm">Data Input</h2>
                 </div>
-                <div className="flex flex-wrap bg-slate-200/50 dark:bg-slate-800 p-1 rounded-lg gap-1 min-w-0">
+                <div className="flex overflow-x-auto custom-scrollbar bg-slate-200/50 dark:bg-slate-800 p-1 rounded-lg gap-1 min-w-0">
                     {INPUT_TABS.map((tab) => {
                         const Icon = tab.icon;
                         const isActive = inputType === tab.id;

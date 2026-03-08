@@ -65,7 +65,7 @@ function App() {
         {/* Right Column: Preview and Options */}
         <div className="flex flex-col gap-6 h-[calc(100vh-8rem)] min-w-0">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-shrink-0">
-            <OptionsPanel options={options} onChange={setOptions} />
+            <OptionsPanel options={options} onChange={setOptions} inputType={inputType} />
             <ExportPanel table={selectedTable} />
           </div>
           <div className="flex-1 min-h-[400px] lg:min-h-0 min-w-0 overflow-hidden">
