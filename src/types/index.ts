@@ -1,4 +1,5 @@
 export type LinkExtractionMode = 'anchor' | 'url' | 'both';
+export type InputType = 'html' | 'markdown' | 'csv' | 'json';
 
 export interface ParseOptions {
     trimWhitespace: boolean;

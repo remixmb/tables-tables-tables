@@ -1,6 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
-import type { ParseOptions } from '../types';
+import type { ParseOptions, InputType } from '../types';
 import { parseHtmlTables } from '../parser/htmlToTable';
+import { parseCsvTable } from '../parser/csvToTable';
+import { parseJsonTable } from '../parser/jsonToTable';
+import { parseMarkdownTable } from '../parser/markdownToTable';
 
 const DEFAULT_OPTIONS: ParseOptions = {
     trimWhitespace: true,
@@ -10,19 +13,31 @@ const DEFAULT_OPTIONS: ParseOptions = {
 };
 
 export function useTableParser() {
-    const [htmlInput, setHtmlInput] = useState<string>('');
+    const [rawInput, setRawInput] = useState<string>('');
+    const [inputType, setInputType] = useState<InputType>('html');
     const [options, setOptions] = useState<ParseOptions>(DEFAULT_OPTIONS);
     const [selectedTableId, setSelectedTableId] = useState<string | null>(null);
 
     const tables = useMemo(() => {
-        if (!htmlInput.trim()) return [];
+        if (!rawInput.trim()) return [];
         try {
-            return parseHtmlTables(htmlInput, options);
+            switch (inputType) {
+                case 'html':
+                    return parseHtmlTables(rawInput, options);
+                case 'markdown':
+                    return parseMarkdownTable(rawInput, options);
+                case 'csv':
+                    return parseCsvTable(rawInput, options);
+                case 'json':
+                    return parseJsonTable(rawInput, options);
+                default:
+                    return [];
+            }
         } catch (e) {
-            console.error("Failed to parse html tables:", e);
+            console.error(`Failed to parse ${inputType} tables:`, e);
             return [];
         }
-    }, [htmlInput, options]);
+    }, [rawInput, inputType, options]);
 
     // Handle auto-selection when tables change
     useEffect(() => {
@@ -44,8 +59,10 @@ export function useTableParser() {
     }, [tables, selectedTableId]);
 
     return {
-        htmlInput,
-        setHtmlInput,
+        rawInput,
+        setRawInput,
+        inputType,
+        setInputType,
         options,
         setOptions,
         tables,

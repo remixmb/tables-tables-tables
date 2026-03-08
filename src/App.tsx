@@ -9,8 +9,10 @@ import { useTableParser } from './hooks/useTableParser';
 
 function App() {
   const {
-    htmlInput,
-    setHtmlInput,
+    rawInput,
+    setRawInput,
+    inputType,
+    setInputType,
     options,
     setOptions,
     tables,
@@ -29,7 +31,7 @@ function App() {
             </div>
             <div>
               <h1 className="font-bold text-lg text-slate-800 dark:text-slate-100 leading-tight">TableForge</h1>
-              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium tracking-wide">HTML to Structured Data</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium tracking-wide">Universal Data Parser</p>
             </div>
           </div>
           <div className="text-xs text-slate-400 dark:text-slate-500 font-medium hidden sm:block">
@@ -42,7 +44,12 @@ function App() {
         {/* Left Column: Input and Lists */}
         <div className="flex flex-col gap-6 h-[calc(100vh-8rem)] min-w-0">
           <div className="h-2/5 min-h-[250px]">
-            <InputPanel value={htmlInput} onChange={setHtmlInput} />
+            <InputPanel
+              value={rawInput}
+              onChange={setRawInput}
+              inputType={inputType}
+              onTypeChange={setInputType}
+            />
           </div>
           <div className="h-3/5 min-h-[300px] flex flex-col gap-6">
             <div className="flex-1 overflow-hidden">
