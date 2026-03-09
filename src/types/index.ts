@@ -1,5 +1,5 @@
 export type LinkExtractionMode = 'anchor' | 'url' | 'both';
-export type InputType = 'html' | 'markdown' | 'csv' | 'json';
+export type InputType = 'html' | 'markdown' | 'csv' | 'json' | 'url';
 
 export interface ParseOptions {
     trimWhitespace: boolean;
@@ -11,6 +11,8 @@ export interface ParseOptions {
     extractImages: boolean;
 }
 
+export type ColumnType = 'string' | 'number' | 'boolean' | 'date';
+
 export interface TableData {
     id: string;
     index: number;
@@ -18,5 +20,6 @@ export interface TableData {
     colCount: number;
     headers: string[];
     rows: string[][];
+    colTypes?: ColumnType[];
     rawHtml: string;
 }

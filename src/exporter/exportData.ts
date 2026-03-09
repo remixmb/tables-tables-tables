@@ -1,5 +1,5 @@
 import Papa from 'papaparse';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 import type { TableData } from '../types';
 
 export function exportToCsv(table: TableData): string {
@@ -63,10 +63,21 @@ export function exportToSql(table: TableData, tableName: string = 'imported_tabl
     const columns = headers.join(', ');
 
     const rows = table.rows.slice(1).map(row => {
-        const values = row.map(val => {
-            const num = Number(val);
-            if (!isNaN(num) && val.trim() !== '') return val;
-            return `'${val.replace(/'/g, "''")}'`;
+        const values = row.map((val, index) => {
+            if (val === null || val === undefined) return 'NULL';
+            const colType = table.colTypes?.[index] || 'string';
+
+            if (colType === 'number') {
+                const num = Number(val);
+                return isNaN(num) || val.trim() === '' ? 'NULL' : val;
+            } else if (colType === 'boolean') {
+                const lower = String(val).toLowerCase().trim();
+                if (lower === 'true' || lower === '1') return 'TRUE';
+                if (lower === 'false' || lower === '0') return 'FALSE';
+                return 'NULL';
+            } else {
+                return `'${String(val).replace(/'/g, "''")}'`;
+            }
         });
         return `(${values.join(', ')})`;
     });
@@ -74,10 +85,10 @@ export function exportToSql(table: TableData, tableName: string = 'imported_tabl
     return `INSERT INTO \`${tableName}\` (${columns}) VALUES\n${rows.join(',\n')};`;
 }
 
-export function exportToXlsx(table: TableData): Blob {
-    const worksheet = XLSX.utils.aoa_to_sheet(table.rows);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
-    const xlsxData = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-    return new Blob([xlsxData], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+export async function exportToXlsx(table: TableData): Promise<Blob> {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Sheet1');
+    worksheet.addRows(table.rows);
+    const buffer = await workbook.xlsx.writeBuffer();
+    return new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
 }

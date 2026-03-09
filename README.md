@@ -1,73 +1,63 @@
-# React + TypeScript + Vite
+# TableForge 🛠️
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+TableForge is a powerful, universal client-side data parser and converter. Paste in raw HTML, Markdown, CSV, or JSON and instantly convert it into a structured, editable Data Grid with advanced export and visualization capabilities.
 
-Currently, two official plugins are available:
+No data is ever stored on a server—everything runs instantly in your browser.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Features ✨
 
-## React Compiler
+### 📥 Multi-Format Parsing
+*   **HTML**: Automatically extracts tables from raw `<table>` markup, handling messy code, complex `colspan`/`rowspan` merges, and hidden elements.
+*   **CSV / TSV**: Fast delimiter-separated value parsing powered by PapaParse.
+*   **JSON**: Intelligently flattens JSON object arrays into structured tabular data.
+*   **Markdown**: Converts GitHub-flavored Markdown tables into actionable data arrays.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 🧠 Smart Auto-Detection
+*   Automatically infers column data types (`string`, `number`, `boolean`) by analyzing your dataset (`dynamicTyping`).
+*   Correctly casts data for specialized SQL creation.
 
-## Expanding the ESLint configuration
+### ✏️ Interactive Data Grid
+*   **Blazing Fast Edits**: A robust React `contentEditable` grid that skips render lag, letting you modify cells directly.
+*   **Data Transposition**: Flip columns and rows geometrically with one click.
+*   **Regex Find & Replace**: Execute complex String or Regular Expression replacements specifically on your data rows before you export.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### 📊 Built-in Data Visualization
+Instantly map your quantitative data into interactive charts. TableForge dynamically scans inferred `ColumnTypes` to locate viable numerical Data Keys for Recharts integration.
+*   Bar Charts 📊
+*   Line Charts 📈
+*   Pie Charts 🥧
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### 📤 Advanced Export Formats
+*   Copy to Clipboard (Raw Tab-Separated Data)
+*   Export as JSON Array
+*   Export as Markdown Table
+*   Generate raw SQL `INSERT` statements using dynamically inferred column types and auto-escaped quotes.
+*   Download true `.xlsx` Application Excel files powered by `exceljs`.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+### ⚙️ Parsing Options
+*   **Filter Empty Data**: Silently drop blank columns to condense your grid.
+*   **First Row as Header**: Toggle dynamic header discovery.
+*   **Format Cleanup**: Remove Line Breaks, Trim Whitespace, Strip nested HTML tags.
+*   **Rich Data Extraction**: Extract Hyperlinks (`href` vs `anchor` text) and Image attributes directly from messy HTML layouts.
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Development
+
+```bash
+# Install dependencies
+npm install
+
+# Start local dev server
+npm run dev
+
+# Run Vitest test suite
+npm run test
+
+# Build for production
+npm run build
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Deployment
+Deployment is handled via the `gh-pages` branch.
+```bash
+npm run deploy
 ```

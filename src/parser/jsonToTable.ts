@@ -1,4 +1,4 @@
-import type { TableData, ParseOptions } from '../types';
+import type { TableData, ParseOptions, ColumnType } from '../types';
 import { applyFilterEmptyData } from './utils';
 
 export function parseJsonTable(jsonString: string, options: ParseOptions): TableData[] {
@@ -22,6 +22,22 @@ export function parseJsonTable(jsonString: string, options: ParseOptions): Table
         });
 
         const headers = Array.from(headerSet);
+
+        // Analyze the objects to infer the types of the columns
+        const inferredColTypes: ColumnType[] = headers.map(header => {
+            let type: ColumnType = 'string';
+            for (const rowItem of parsed) {
+                if (rowItem && typeof rowItem === 'object' && !Array.isArray(rowItem)) {
+                    const val = rowItem[header];
+                    if (val !== null && val !== undefined) {
+                        if (typeof val === 'number') type = 'number';
+                        else if (typeof val === 'boolean') type = 'boolean';
+                        break;
+                    }
+                }
+            }
+            return type;
+        });
 
         // Map values according to the discovered header keys
         let rows = parsed.map(rowItem => {
@@ -50,6 +66,7 @@ export function parseJsonTable(jsonString: string, options: ParseOptions): Table
             colCount: headers.length,
             headers,
             rows,
+            colTypes: inferredColTypes,
             rawHtml: '' // Irrelevant for JSON parsing
         };
 

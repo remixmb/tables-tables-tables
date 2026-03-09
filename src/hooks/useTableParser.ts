@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import type { ParseOptions, InputType } from '../types';
+import type { ParseOptions, InputType, TableData } from '../types';
 import { parseHtmlTables } from '../parser/htmlToTable';
 import { parseCsvTable } from '../parser/csvToTable';
 import { parseJsonTable } from '../parser/jsonToTable';
@@ -15,17 +15,73 @@ const DEFAULT_OPTIONS: ParseOptions = {
     extractImages: false
 };
 
+const STORAGE_KEY = 'tableforge_session_v1';
+
+interface SessionState {
+    rawInput: string;
+    inputType: InputType;
+    options: ParseOptions;
+    customTables: TableData[];
+}
+
 export function useTableParser() {
-    const [rawInput, setRawInput] = useState<string>('');
-    const [inputType, setInputType] = useState<InputType>('html');
-    const [options, setOptions] = useState<ParseOptions>(DEFAULT_OPTIONS);
+    // Load initial state from localStorage
+    const getInitialState = (): SessionState => {
+        try {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (stored) {
+                const parsed = JSON.parse(stored) as Partial<SessionState>;
+                return {
+                    rawInput: parsed.rawInput ?? '',
+                    inputType: parsed.inputType ?? 'html',
+                    options: parsed.options ? { ...DEFAULT_OPTIONS, ...parsed.options } : DEFAULT_OPTIONS,
+                    customTables: parsed.customTables ?? []
+                };
+            }
+        } catch (e) {
+            console.error('Failed to load session from localStorage', e);
+        }
+        return {
+            rawInput: '',
+            inputType: 'html',
+            options: DEFAULT_OPTIONS,
+            customTables: []
+        };
+    };
+
+    const initialState = useMemo(() => getInitialState(), []);
+
+    const [rawInput, setRawInput] = useState<string>(initialState.rawInput);
+    const [inputType, setInputType] = useState<InputType>(initialState.inputType);
+    const [options, setOptions] = useState<ParseOptions>(initialState.options);
+    const [customTables, setCustomTables] = useState<TableData[]>(initialState.customTables);
     const [selectedTableId, setSelectedTableId] = useState<string | null>(null);
 
-    const tables = useMemo(() => {
+    // Persist state changes to localStorage
+    useEffect(() => {
+        try {
+            const state: SessionState = { rawInput, inputType, options, customTables };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        } catch (e) {
+            console.error('Failed to save session to localStorage', e);
+        }
+    }, [rawInput, inputType, options, customTables]);
+
+    const clearSession = () => {
+        setRawInput('');
+        setInputType('html');
+        setOptions(DEFAULT_OPTIONS);
+        setCustomTables([]);
+        setSelectedTableId(null);
+        localStorage.removeItem(STORAGE_KEY);
+    };
+
+    const parsedTables = useMemo(() => {
         if (!rawInput.trim()) return [];
         try {
             switch (inputType) {
                 case 'html':
+                case 'url':
                     return parseHtmlTables(rawInput, options);
                 case 'markdown':
                     return parseMarkdownTable(rawInput, options);
@@ -41,6 +97,10 @@ export function useTableParser() {
             return [];
         }
     }, [rawInput, inputType, options]);
+
+    const tables = useMemo(() => {
+        return [...parsedTables, ...customTables];
+    }, [parsedTables, customTables]);
 
     // Handle auto-selection when tables change
     useEffect(() => {
@@ -69,8 +129,11 @@ export function useTableParser() {
         options,
         setOptions,
         tables,
+        customTables,
+        setCustomTables,
         selectedTableId,
         setSelectedTableId,
-        selectedTable
+        selectedTable,
+        clearSession
     };
 }

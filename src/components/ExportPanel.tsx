@@ -31,7 +31,7 @@ export function ExportPanel({ table }: ExportPanelProps) {
         }
     };
 
-    const handleDownload = (format: 'csv' | 'json' | 'tsv' | 'markdown' | 'sql' | 'xlsx') => {
+    const handleDownload = async (format: 'csv' | 'json' | 'tsv' | 'markdown' | 'sql' | 'xlsx') => {
         if (!table) return;
 
         let content: string | Blob = '';
@@ -65,7 +65,7 @@ export function ExportPanel({ table }: ExportPanelProps) {
                 ext = 'sql';
                 break;
             case 'xlsx':
-                content = exportToXlsx(table);
+                content = await exportToXlsx(table);
                 ext = 'xlsx';
                 break;
         }

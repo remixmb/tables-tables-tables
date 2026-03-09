@@ -6,10 +6,12 @@ export function parseCsvTable(csvString: string, options: ParseOptions): TableDa
     const trimmedInput = csvString.trim();
     if (!trimmedInput) return [];
 
-    // Use PapaParse to handle all CSV edge cases (quotes, escaped characters, newlines, etc.)
-    const { data, errors } = Papa.parse<string[]>(trimmedInput, {
+    // Use PapaParse to handle all CSV edge cases
+    // Note: dynamicTyping helps us infer Column Types (number, boolean)
+    const { data, errors } = Papa.parse<any[]>(trimmedInput, {
         header: false,
         skipEmptyLines: true,
+        dynamicTyping: true
     });
 
     if (errors.length > 0) {
@@ -21,15 +23,27 @@ export function parseCsvTable(csvString: string, options: ParseOptions): TableDa
     let maxCols = 0;
     data.forEach(row => { if (row.length > maxCols) maxCols = row.length; });
 
+    // Pad rows and cast back to strings for the UI to digest
     let headers: string[] = [];
     let rows: string[][] = data.map(row => {
         const fullRow = [...row];
         while (fullRow.length < maxCols) fullRow.push('');
-        return fullRow.map(v => (v || '').trim());
+        return fullRow.map(v => (v === null || v === undefined ? '' : String(v)).trim());
     });
+
+    // Infer column types using the very first data row
+    const firstDataRow = options.firstRowAsHeader ? data[1] : data[0];
+    const inferredColTypes: ('string' | 'number' | 'boolean')[] = [];
+    for (let c = 0; c < maxCols; c++) {
+        const val = firstDataRow ? firstDataRow[c] : null;
+        if (typeof val === 'number') inferredColTypes.push('number');
+        else if (typeof val === 'boolean') inferredColTypes.push('boolean');
+        else inferredColTypes.push('string');
+    }
 
     if (options.firstRowAsHeader) {
         headers = rows[0] || [];
+        // Extract headers from the data string grid, and keep rows aligned
     } else {
         headers = Array.from({ length: maxCols }, (_, i) => `Column ${i + 1}`);
         rows = [headers, ...rows];
@@ -48,6 +62,7 @@ export function parseCsvTable(csvString: string, options: ParseOptions): TableDa
         colCount: headers.length,
         headers,
         rows,
+        colTypes: inferredColTypes,
         rawHtml: '' // Irrelevant for CSV source
     };
 

@@ -1,10 +1,11 @@
-
-import { Table } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Table, Trash2 } from 'lucide-react';
 import { InputPanel } from './components/InputPanel';
 import { OptionsPanel } from './components/OptionsPanel';
 import { TableList } from './components/TableList';
 import { TablePreview } from './components/TablePreview';
 import { ExportPanel } from './components/ExportPanel';
+import { MergeDialog } from './components/MergeDialog';
 import { useTableParser } from './hooks/useTableParser';
 
 function App() {
@@ -16,10 +17,20 @@ function App() {
     options,
     setOptions,
     tables,
+    customTables,
+    setCustomTables,
     selectedTableId,
     setSelectedTableId,
-    selectedTable
+    selectedTable,
+    clearSession
   } = useTableParser();
+
+  const [editableTable, setEditableTable] = useState(selectedTable);
+  const [isMergeOpen, setIsMergeOpen] = useState(false);
+
+  useEffect(() => {
+    setEditableTable(selectedTable);
+  }, [selectedTable]);
 
   return (
     <div className="min-h-screen bg-slate-100 dark:bg-slate-950 flex flex-col font-sans transition-colors duration-200">
@@ -34,8 +45,22 @@ function App() {
               <p className="text-xs text-slate-500 dark:text-slate-400 font-medium tracking-wide">Universal Data Parser</p>
             </div>
           </div>
-          <div className="text-xs text-slate-400 dark:text-slate-500 font-medium hidden sm:block">
-            Client-side parsing • No data stored
+          <div className="flex items-center gap-4">
+            <div className="text-xs text-slate-400 dark:text-slate-500 font-medium hidden sm:block">
+              Client-side parsing • No data stored
+            </div>
+            <button
+              onClick={() => {
+                if (window.confirm('Are you sure you want to clear your session? All parsed data and options will be lost.')) {
+                  clearSession();
+                }
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors focus:ring-2 focus:ring-red-500 outline-none"
+              title="Clear Session"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              Clear Data
+            </button>
           </div>
         </div>
       </header>
@@ -57,6 +82,7 @@ function App() {
                 tables={tables}
                 selectedId={selectedTableId}
                 onSelect={setSelectedTableId}
+                onOpenMerge={() => setIsMergeOpen(true)}
               />
             </div>
           </div>
@@ -66,13 +92,24 @@ function App() {
         <div className="flex flex-col gap-6 h-[calc(100vh-8rem)] min-w-0">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-shrink-0">
             <OptionsPanel options={options} onChange={setOptions} inputType={inputType} />
-            <ExportPanel table={selectedTable} />
+            <ExportPanel table={editableTable} />
           </div>
           <div className="flex-1 min-h-[400px] lg:min-h-0 min-w-0 overflow-hidden">
-            <TablePreview table={selectedTable} />
+            <TablePreview table={editableTable} onTableChange={setEditableTable} />
           </div>
         </div>
       </main>
+
+      {/* Modals */}
+      <MergeDialog
+        isOpen={isMergeOpen}
+        onClose={() => setIsMergeOpen(false)}
+        tables={tables}
+        onMerge={(newTable) => {
+          setCustomTables([...customTables, newTable]);
+          setSelectedTableId(newTable.id);
+        }}
+      />
     </div>
   );
 }

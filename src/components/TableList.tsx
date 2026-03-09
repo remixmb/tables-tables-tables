@@ -1,13 +1,14 @@
-import { LayoutGrid, Table2 } from 'lucide-react';
+import { LayoutGrid, Table2, GitMerge } from 'lucide-react';
 import type { TableData } from '../types';
 
 interface TableListProps {
     tables: TableData[];
     selectedId: string | null;
     onSelect: (id: string) => void;
+    onOpenMerge: () => void;
 }
 
-export function TableList({ tables, selectedId, onSelect }: TableListProps) {
+export function TableList({ tables, selectedId, onSelect, onOpenMerge }: TableListProps) {
     if (tables.length === 0) {
         return (
             <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col h-full transition-colors duration-200">
@@ -33,9 +34,20 @@ export function TableList({ tables, selectedId, onSelect }: TableListProps) {
                     <LayoutGrid className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
                     <h2 className="font-semibold text-slate-800 dark:text-slate-100 text-sm">Detected Tables</h2>
                 </div>
-                <span className="bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 text-xs font-bold px-2 py-0.5 rounded-full">
-                    {tables.length}
-                </span>
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={onOpenMerge}
+                        disabled={tables.length < 2}
+                        className="flex items-center gap-1.5 px-2 py-1 text-xs font-medium text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        title="Merge Tables (Join)"
+                    >
+                        <GitMerge className="w-3.5 h-3.5" />
+                        Merge
+                    </button>
+                    <span className="bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 text-xs font-bold px-2 py-0.5 rounded-full">
+                        {tables.length}
+                    </span>
+                </div>
             </div>
             <div className="p-2 overflow-y-auto space-y-2 focus:outline-none custom-scrollbar">
                 {tables.map((table) => (
