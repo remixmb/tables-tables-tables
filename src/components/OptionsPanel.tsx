@@ -48,19 +48,60 @@ export function OptionsPanel({ options, onChange, inputType }: OptionsPanelProps
                         <span className="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-slate-100 transition-colors">Remove line breaks</span>
                     </label>
 
+                    <label className="flex flex-row-reverse items-center justify-between cursor-pointer group">
+                        <div className="relative inline-flex items-center">
+                            <input
+                                type="checkbox"
+                                className="sr-only peer"
+                                checked={options.firstRowAsHeader}
+                                onChange={(e) => handleChange('firstRowAsHeader', e.target.checked)}
+                            />
+                            <div className="w-10 h-6 bg-slate-200 dark:bg-slate-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 dark:after:border-slate-600 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600 dark:peer-checked:bg-indigo-500 shadow-inner"></div>
+                        </div>
+                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-slate-100 transition-colors">First row as header</span>
+                    </label>
+
+                    <label className="flex flex-row-reverse items-center justify-between cursor-pointer group">
+                        <div className="relative inline-flex items-center">
+                            <input
+                                type="checkbox"
+                                className="sr-only peer"
+                                checked={options.filterEmptyData}
+                                onChange={(e) => handleChange('filterEmptyData', e.target.checked)}
+                            />
+                            <div className="w-10 h-6 bg-slate-200 dark:bg-slate-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 dark:after:border-slate-600 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600 dark:peer-checked:bg-indigo-500 shadow-inner"></div>
+                        </div>
+                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-slate-100 transition-colors">Filter empty rows/cols</span>
+                    </label>
+
                     {showHtmlOptions && (
-                        <label className="flex flex-row-reverse items-center justify-between cursor-pointer group">
-                            <div className="relative inline-flex items-center">
-                                <input
-                                    type="checkbox"
-                                    className="sr-only peer"
-                                    checked={options.stripHtmlTags}
-                                    onChange={(e) => handleChange('stripHtmlTags', e.target.checked)}
-                                />
-                                <div className="w-10 h-6 bg-slate-200 dark:bg-slate-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 dark:after:border-slate-600 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600 dark:peer-checked:bg-indigo-500 shadow-inner"></div>
-                            </div>
-                            <span className="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-slate-100 transition-colors">Strip HTML tags</span>
-                        </label>
+                        <>
+                            <label className="flex flex-row-reverse items-center justify-between cursor-pointer group">
+                                <div className="relative inline-flex items-center">
+                                    <input
+                                        type="checkbox"
+                                        className="sr-only peer"
+                                        checked={options.stripHtmlTags}
+                                        onChange={(e) => handleChange('stripHtmlTags', e.target.checked)}
+                                    />
+                                    <div className="w-10 h-6 bg-slate-200 dark:bg-slate-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 dark:after:border-slate-600 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600 dark:peer-checked:bg-indigo-500 shadow-inner"></div>
+                                </div>
+                                <span className="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-slate-100 transition-colors">Strip HTML tags</span>
+                            </label>
+
+                            <label className="flex flex-row-reverse items-center justify-between cursor-pointer group">
+                                <div className="relative inline-flex items-center">
+                                    <input
+                                        type="checkbox"
+                                        className="sr-only peer"
+                                        checked={options.extractImages}
+                                        onChange={(e) => handleChange('extractImages', e.target.checked)}
+                                    />
+                                    <div className="w-10 h-6 bg-slate-200 dark:bg-slate-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 dark:after:border-slate-600 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600 dark:peer-checked:bg-indigo-500 shadow-inner"></div>
+                                </div>
+                                <span className="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-slate-100 transition-colors">Extract Images</span>
+                            </label>
+                        </>
                     )}
                 </div>
 

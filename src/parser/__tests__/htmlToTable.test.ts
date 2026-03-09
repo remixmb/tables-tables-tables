@@ -7,6 +7,9 @@ const defaultOptions: ParseOptions = {
     removeLineBreaks: true,
     trimWhitespace: true,
     linkExtractionMode: 'anchor',
+    firstRowAsHeader: true,
+    filterEmptyData: false,
+    extractImages: false
 };
 
 describe('parseHtmlTables', () => {

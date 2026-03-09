@@ -5,7 +5,10 @@ const defaultOptions = {
     trimWhitespace: true,
     removeLineBreaks: false,
     stripHtmlTags: true,
-    linkExtractionMode: 'anchor' as const
+    linkExtractionMode: 'anchor' as const,
+    firstRowAsHeader: true,
+    filterEmptyData: false,
+    extractImages: false
 };
 
 describe('parseJsonTable', () => {
@@ -26,9 +29,9 @@ describe('parseJsonTable', () => {
 
         // Order of headers depends on Set insertion order (first object seen)
         expect(result[0].headers).toEqual(['id', 'name', 'stock']);
-        expect(result[0].rows).toHaveLength(2);
-        expect(result[0].rows[0]).toEqual(['1', 'Apple', '50']);
-        expect(result[0].rows[1]).toEqual(['2', 'Banana', '100']);
+        expect(result[0].rows).toHaveLength(3);
+        expect(result[0].rows[1]).toEqual(['1', 'Apple', '50']);
+        expect(result[0].rows[2]).toEqual(['2', 'Banana', '100']);
     });
 
     it('handles missing keys in subsequent objects', () => {
@@ -42,9 +45,9 @@ describe('parseJsonTable', () => {
         expect(result[0].headers).toEqual(['a', 'b', 'c']);
 
         // Row 1 missing 'c'
-        expect(result[0].rows[0]).toEqual(['1', '2', '']);
+        expect(result[0].rows[1]).toEqual(['1', '2', '']);
         // Row 2 missing 'b'
-        expect(result[0].rows[1]).toEqual(['3', '', '4']);
+        expect(result[0].rows[2]).toEqual(['3', '', '4']);
     });
 
     it('converts nested objects and arrays to strings', () => {
@@ -53,6 +56,6 @@ describe('parseJsonTable', () => {
         ]`;
         const result = parseJsonTable(input, defaultOptions);
 
-        expect(result[0].rows[0]).toEqual(['Item 1', '["a","b"]', '{"active":true}']);
+        expect(result[0].rows[1]).toEqual(['Item 1', '["a","b"]', '{"active":true}']);
     });
 });

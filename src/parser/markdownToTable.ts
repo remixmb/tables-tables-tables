@@ -1,4 +1,5 @@
 import type { TableData, ParseOptions } from '../types';
+import { applyFilterEmptyData } from './utils';
 
 export function parseMarkdownTable(markdownString: string, options: ParseOptions): TableData[] {
     const lines = markdownString.trim().split('\n');
@@ -45,8 +46,24 @@ export function parseMarkdownTable(markdownString: string, options: ParseOptions
         } else {
             // End of a table block
             if (isParsingTable && currentTableRows.length > 0) {
-                const headers = currentTableRows[0] || [];
-                const rows = currentTableRows.length > 1 ? currentTableRows.slice(1) : [];
+                let headers: string[] = [];
+                let rows: string[][] = [];
+                let maxCols = Math.max(...currentTableRows.map(r => r.length), 0);
+
+                // pad rows
+                const paddedRows = currentTableRows.map(row => {
+                    const fullRow = [...row];
+                    while (fullRow.length < maxCols) fullRow.push('');
+                    return fullRow.map(v => (v || '').trim());
+                });
+
+                if (options.firstRowAsHeader) {
+                    headers = paddedRows[0] || [];
+                    rows = paddedRows;
+                } else {
+                    headers = Array.from({ length: maxCols }, (_, i) => `Column ${i + 1}`);
+                    rows = [headers, ...paddedRows];
+                }
 
                 tables.push({
                     id: crypto.randomUUID(),
@@ -67,8 +84,24 @@ export function parseMarkdownTable(markdownString: string, options: ParseOptions
 
     // Handle case where table ends at the EOF without an empty line
     if (isParsingTable && currentTableRows.length > 0) {
-        const headers = currentTableRows[0] || [];
-        const rows = currentTableRows.length > 1 ? currentTableRows.slice(1) : [];
+        let headers: string[] = [];
+        let rows: string[][] = [];
+        let maxCols = Math.max(...currentTableRows.map(r => r.length), 0);
+
+        // pad rows
+        const paddedRows = currentTableRows.map(row => {
+            const fullRow = [...row];
+            while (fullRow.length < maxCols) fullRow.push('');
+            return fullRow.map(v => (v || '').trim());
+        });
+
+        if (options.firstRowAsHeader) {
+            headers = paddedRows[0] || [];
+            rows = paddedRows;
+        } else {
+            headers = Array.from({ length: maxCols }, (_, i) => `Column ${i + 1}`);
+            rows = [headers, ...paddedRows];
+        }
 
         tables.push({
             id: crypto.randomUUID(),
@@ -88,6 +121,10 @@ export function parseMarkdownTable(markdownString: string, options: ParseOptions
             headers: table.headers.map(h => h.replace(/\s+/g, ' ')),
             rows: table.rows.map(r => r.map(c => c.replace(/\s+/g, ' ')))
         }));
+    }
+
+    if (options.filterEmptyData) {
+        tables = tables.map(table => applyFilterEmptyData(table));
     }
 
     return tables;

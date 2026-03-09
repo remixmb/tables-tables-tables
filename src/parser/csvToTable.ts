@@ -1,5 +1,6 @@
 import Papa from 'papaparse';
 import type { TableData, ParseOptions } from '../types';
+import { applyFilterEmptyData } from './utils';
 
 export function parseCsvTable(csvString: string, options: ParseOptions): TableData[] {
     const trimmedInput = csvString.trim();
@@ -17,21 +18,21 @@ export function parseCsvTable(csvString: string, options: ParseOptions): TableDa
 
     if (data.length === 0) return [];
 
+    let maxCols = 0;
+    data.forEach(row => { if (row.length > maxCols) maxCols = row.length; });
+
     let headers: string[] = [];
-    let rows: string[][] = [];
+    let rows: string[][] = data.map(row => {
+        const fullRow = [...row];
+        while (fullRow.length < maxCols) fullRow.push('');
+        return fullRow.map(v => (v || '').trim());
+    });
 
-    // For CSV, assume the first row contains headers.
-    headers = data[0].map(h => (h || '').trim());
-
-    if (data.length > 1) {
-        rows = data.slice(1).map(row => {
-            // pad row array if missing columns compared to header
-            const fullRow = [...row];
-            while (fullRow.length < headers.length) {
-                fullRow.push('');
-            }
-            return fullRow.slice(0, headers.length).map(v => (v || '').trim());
-        });
+    if (options.firstRowAsHeader) {
+        headers = rows[0] || [];
+    } else {
+        headers = Array.from({ length: maxCols }, (_, i) => `Column ${i + 1}`);
+        rows = [headers, ...rows];
     }
 
     // Apply options if requested (e.g. remove Line Breaks within quoted string cells)
@@ -40,7 +41,7 @@ export function parseCsvTable(csvString: string, options: ParseOptions): TableDa
         rows = rows.map(r => r.map(c => c.replace(/\s+/g, ' ')));
     }
 
-    return [{
+    let table: TableData = {
         id: crypto.randomUUID(),
         index: 1, // Only 1 table mapped per CSV string
         rowCount: rows.length,
@@ -48,5 +49,11 @@ export function parseCsvTable(csvString: string, options: ParseOptions): TableDa
         headers,
         rows,
         rawHtml: '' // Irrelevant for CSV source
-    }];
+    };
+
+    if (options.filterEmptyData) {
+        table = applyFilterEmptyData(table);
+    }
+
+    return [table];
 }

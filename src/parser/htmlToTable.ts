@@ -1,4 +1,28 @@
 import type { ParseOptions, TableData } from '../types';
+import { applyFilterEmptyData } from './utils';
+
+function processImages(element: HTMLElement, extractImages: boolean) {
+    if (!extractImages) return;
+
+    const images = element.querySelectorAll('img');
+    images.forEach(img => {
+        const src = img.getAttribute('src') || '';
+        const alt = img.getAttribute('alt') || '';
+        let replacement = '';
+        if (alt && src) {
+            replacement = `[Image: ${alt}](${src})`;
+        } else if (src) {
+            replacement = `[Image](${src})`;
+        } else if (alt) {
+            replacement = `[Image: ${alt}]`;
+        }
+
+        if (replacement) {
+            const textNode = document.createTextNode(replacement);
+            img.replaceWith(textNode);
+        }
+    });
+}
 
 function processLinks(element: HTMLElement, mode: 'anchor' | 'url' | 'both') {
     if (mode === 'anchor') return;
@@ -24,6 +48,7 @@ function extractCellContent(cell: HTMLTableCellElement | HTMLTableHeaderCellElem
     const clone = cell.cloneNode(true) as HTMLElement;
 
     processLinks(clone, options.linkExtractionMode);
+    processImages(clone, options.extractImages);
 
     let content = options.stripHtmlTags ? (clone.textContent || '') : clone.innerHTML;
 
@@ -86,17 +111,31 @@ export function parseTable(table: HTMLTableElement, index: number, options: Pars
         }
     });
 
-    const headers = grid.length > 0 ? grid[0] : [];
+    let headers: string[] = [];
+    let finalRows = grid;
 
-    return {
+    if (options.firstRowAsHeader && grid.length > 0) {
+        headers = grid[0];
+    } else {
+        headers = Array.from({ length: colCount }, (_, i) => `Column ${i + 1}`);
+        finalRows = [headers, ...grid];
+    }
+
+    let tableData: TableData = {
         id: `table-${index}`,
         index,
-        rowCount: grid.length,
+        rowCount: finalRows.length,
         colCount,
         headers,
-        rows: grid,
+        rows: finalRows,
         rawHtml: table.outerHTML
     };
+
+    if (options.filterEmptyData) {
+        tableData = applyFilterEmptyData(tableData);
+    }
+
+    return tableData;
 }
 
 export function parseHtmlTables(htmlString: string, options: ParseOptions): TableData[] {

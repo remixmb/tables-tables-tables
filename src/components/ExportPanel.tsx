@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Download, Copy, FileJson, FileSpreadsheet, FileText, Check } from 'lucide-react';
+import { Download, Copy, FileJson, FileSpreadsheet, FileText, Check, Database, Table } from 'lucide-react';
 import type { TableData } from '../types';
-import { exportToCsv, exportToJson, exportToMarkdown, exportToTsv } from '../exporter/exportData';
+import { exportToCsv, exportToJson, exportToMarkdown, exportToTsv, exportToSql, exportToXlsx } from '../exporter/exportData';
 
 interface ExportPanelProps {
     table: TableData | null;
@@ -10,7 +10,7 @@ interface ExportPanelProps {
 export function ExportPanel({ table }: ExportPanelProps) {
     const [copiedFormat, setCopiedFormat] = useState<string | null>(null);
 
-    const handleCopy = async (format: 'csv' | 'json' | 'tsv' | 'markdown') => {
+    const handleCopy = async (format: 'csv' | 'json' | 'tsv' | 'markdown' | 'sql') => {
         if (!table) return;
 
         let text = '';
@@ -19,6 +19,7 @@ export function ExportPanel({ table }: ExportPanelProps) {
             case 'tsv': text = exportToTsv(table); break;
             case 'json': text = exportToJson(table); break;
             case 'markdown': text = exportToMarkdown(table); break;
+            case 'sql': text = exportToSql(table); break;
         }
 
         try {
@@ -30,10 +31,10 @@ export function ExportPanel({ table }: ExportPanelProps) {
         }
     };
 
-    const handleDownload = (format: 'csv' | 'json' | 'tsv' | 'markdown') => {
+    const handleDownload = (format: 'csv' | 'json' | 'tsv' | 'markdown' | 'sql' | 'xlsx') => {
         if (!table) return;
 
-        let content = '';
+        let content: string | Blob = '';
         let type = '';
         let ext = '';
 
@@ -58,9 +59,18 @@ export function ExportPanel({ table }: ExportPanelProps) {
                 type = 'text/markdown;charset=utf-8;';
                 ext = 'md';
                 break;
+            case 'sql':
+                content = exportToSql(table);
+                type = 'application/sql;charset=utf-8;';
+                ext = 'sql';
+                break;
+            case 'xlsx':
+                content = exportToXlsx(table);
+                ext = 'xlsx';
+                break;
         }
 
-        const blob = new Blob([content], { type });
+        const blob = content instanceof Blob ? content : new Blob([content], { type });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
@@ -92,6 +102,11 @@ export function ExportPanel({ table }: ExportPanelProps) {
                                 copied={copiedFormat === 'csv'}
                             />
                             <ExportGroup
+                                title="Excel (XLSX)"
+                                icon={<Table size={14} />}
+                                onDownload={() => handleDownload('xlsx')}
+                            />
+                            <ExportGroup
                                 title="TSV"
                                 icon={<FileSpreadsheet size={14} />}
                                 onCopy={() => handleCopy('tsv')}
@@ -117,6 +132,13 @@ export function ExportPanel({ table }: ExportPanelProps) {
                                 onDownload={() => handleDownload('markdown')}
                                 copied={copiedFormat === 'markdown'}
                             />
+                            <ExportGroup
+                                title="SQL Insert"
+                                icon={<Database size={14} />}
+                                onCopy={() => handleCopy('sql')}
+                                onDownload={() => handleDownload('sql')}
+                                copied={copiedFormat === 'sql'}
+                            />
                         </div>
                     </div>
                 </div>
@@ -130,13 +152,13 @@ function ExportGroup({
     icon,
     onCopy,
     onDownload,
-    copied
+    copied = false
 }: {
     title: string;
     icon: React.ReactNode;
-    onCopy: () => void;
+    onCopy?: () => void;
     onDownload: () => void;
-    copied: boolean;
+    copied?: boolean;
 }) {
     return (
         <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800/80 group hover:border-indigo-100 dark:hover:border-indigo-900/50 hover:bg-indigo-50/30 dark:hover:bg-indigo-900/20 transition-all duration-200">
@@ -145,13 +167,15 @@ function ExportGroup({
                 {title}
             </div>
             <div className="flex items-center gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
-                <button
-                    onClick={onCopy}
-                    className="p-1.5 rounded-md text-slate-400 dark:text-slate-500 hover:bg-white dark:hover:bg-slate-800 hover:text-indigo-600 dark:hover:text-indigo-400 hover:shadow-sm transition-all"
-                    title="Copy to clipboard"
-                >
-                    {copied ? <Check size={14} className="text-emerald-500 dark:text-emerald-400" /> : <Copy size={14} />}
-                </button>
+                {onCopy && (
+                    <button
+                        onClick={onCopy}
+                        className="p-1.5 rounded-md text-slate-400 dark:text-slate-500 hover:bg-white dark:hover:bg-slate-800 hover:text-indigo-600 dark:hover:text-indigo-400 hover:shadow-sm transition-all"
+                        title="Copy to clipboard"
+                    >
+                        {copied ? <Check size={14} className="text-emerald-500 dark:text-emerald-400" /> : <Copy size={14} />}
+                    </button>
+                )}
                 <button
                     onClick={onDownload}
                     className="p-1.5 rounded-md text-slate-400 dark:text-slate-500 hover:bg-white dark:hover:bg-slate-800 hover:text-indigo-600 dark:hover:text-indigo-400 hover:shadow-sm transition-all"

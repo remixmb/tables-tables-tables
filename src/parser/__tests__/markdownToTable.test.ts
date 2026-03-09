@@ -5,7 +5,10 @@ const defaultOptions = {
     trimWhitespace: true,
     removeLineBreaks: false,
     stripHtmlTags: true,
-    linkExtractionMode: 'anchor' as const
+    linkExtractionMode: 'anchor' as const,
+    firstRowAsHeader: true,
+    filterEmptyData: false,
+    extractImages: false
 };
 
 describe('parseMarkdownTable', () => {
@@ -26,9 +29,9 @@ describe('parseMarkdownTable', () => {
         expect(result).toHaveLength(1);
         expect(result[0].headers).toEqual(['Header 1', 'Header 2']);
         // Ensures the separator row '| -------- |' is skipped
-        expect(result[0].rows).toHaveLength(2);
-        expect(result[0].rows[0]).toEqual(['Value 1', 'Value 2']);
-        expect(result[0].rows[1]).toEqual(['Value 3', 'Value 4']);
+        expect(result[0].rows).toHaveLength(3);
+        expect(result[0].rows[1]).toEqual(['Value 1', 'Value 2']);
+        expect(result[0].rows[2]).toEqual(['Value 3', 'Value 4']);
     });
 
     it('parses multiple tables in one string', () => {
@@ -47,10 +50,10 @@ Second table:
         expect(result).toHaveLength(2);
 
         expect(result[0].headers).toEqual(['A', 'B']);
-        expect(result[0].rows[0]).toEqual(['1', '2']);
+        expect(result[0].rows[1]).toEqual(['1', '2']);
 
         expect(result[1].headers).toEqual(['X', 'Y']);
-        expect(result[1].rows[0]).toEqual(['8', '9']);
+        expect(result[1].rows[1]).toEqual(['8', '9']);
     });
 
     it('handles tables without leading/trailing pipes', () => {
@@ -62,6 +65,6 @@ Alice | 24
         const result = parseMarkdownTable(input, defaultOptions);
         expect(result).toHaveLength(1);
         expect(result[0].headers).toEqual(['Name', 'Age']);
-        expect(result[0].rows[0]).toEqual(['Alice', '24']);
+        expect(result[0].rows[1]).toEqual(['Alice', '24']);
     });
 });

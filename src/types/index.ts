@@ -6,6 +6,9 @@ export interface ParseOptions {
     removeLineBreaks: boolean;
     stripHtmlTags: boolean;
     linkExtractionMode: LinkExtractionMode;
+    firstRowAsHeader: boolean;
+    filterEmptyData: boolean;
+    extractImages: boolean;
 }
 
 export interface TableData {

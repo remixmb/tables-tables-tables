@@ -5,7 +5,10 @@ const defaultOptions = {
     trimWhitespace: true,
     removeLineBreaks: false,
     stripHtmlTags: true,
-    linkExtractionMode: 'anchor' as const
+    linkExtractionMode: 'anchor' as const,
+    firstRowAsHeader: true,
+    filterEmptyData: false,
+    extractImages: false
 };
 
 describe('parseCsvTable', () => {
@@ -23,9 +26,9 @@ Bob,30,Los Angeles`;
 
         expect(result).toHaveLength(1);
         expect(result[0].headers).toEqual(['Name', 'Age', 'City']);
-        expect(result[0].rows).toHaveLength(2);
-        expect(result[0].rows[0]).toEqual(['Alice', '24', 'New York']);
-        expect(result[0].rows[1]).toEqual(['Bob', '30', 'Los Angeles']);
+        expect(result[0].rows).toHaveLength(3);
+        expect(result[0].rows[1]).toEqual(['Alice', '24', 'New York']);
+        expect(result[0].rows[2]).toEqual(['Bob', '30', 'Los Angeles']);
     });
 
     it('handles padding rows missing columns', () => {
@@ -33,7 +36,7 @@ Bob,30,Los Angeles`;
 1,2`; // missing column C's value
 
         const result = parseCsvTable(input, defaultOptions);
-        expect(result[0].rows[0]).toEqual(['1', '2', '']);
+        expect(result[0].rows[1]).toEqual(['1', '2', '']);
     });
 
     it('handles quoted strings with commas and newlines', () => {
@@ -42,11 +45,11 @@ Charlie,"Loves, apples
 and bananas"`;
 
         const result = parseCsvTable(input, defaultOptions);
-        expect(result[0].rows[0]).toEqual(['Charlie', 'Loves, apples\nand bananas']);
+        expect(result[0].rows[1]).toEqual(['Charlie', 'Loves, apples\nand bananas']);
 
         // Test behavior with removeLineBreaks enabled
         const optClean = { ...defaultOptions, removeLineBreaks: true };
         const resultClean = parseCsvTable(input, optClean);
-        expect(resultClean[0].rows[0]).toEqual(['Charlie', 'Loves, apples and bananas']);
+        expect(resultClean[0].rows[1]).toEqual(['Charlie', 'Loves, apples and bananas']);
     });
 });

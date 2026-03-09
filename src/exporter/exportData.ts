@@ -1,4 +1,5 @@
 import Papa from 'papaparse';
+import * as XLSX from 'xlsx';
 import type { TableData } from '../types';
 
 export function exportToCsv(table: TableData): string {
@@ -53,4 +54,30 @@ export function exportToMarkdown(table: TableData): string {
 function escapeMarkdown(text: string): string {
     // Replace pipes with escaped pipes to not break markdown tables
     return text.replace(/\|/g, '\\|').replace(/\n/g, '<br>');
+}
+
+export function exportToSql(table: TableData, tableName: string = 'imported_table'): string {
+    if (table.rows.length <= 1) return '';
+
+    const headers = table.rows[0].map(h => `\`${h.replace(/`/g, '``')}\``);
+    const columns = headers.join(', ');
+
+    const rows = table.rows.slice(1).map(row => {
+        const values = row.map(val => {
+            const num = Number(val);
+            if (!isNaN(num) && val.trim() !== '') return val;
+            return `'${val.replace(/'/g, "''")}'`;
+        });
+        return `(${values.join(', ')})`;
+    });
+
+    return `INSERT INTO \`${tableName}\` (${columns}) VALUES\n${rows.join(',\n')};`;
+}
+
+export function exportToXlsx(table: TableData): Blob {
+    const worksheet = XLSX.utils.aoa_to_sheet(table.rows);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
+    const xlsxData = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    return new Blob([xlsxData], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
 }

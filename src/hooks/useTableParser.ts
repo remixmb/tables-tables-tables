@@ -9,7 +9,10 @@ const DEFAULT_OPTIONS: ParseOptions = {
     trimWhitespace: true,
     removeLineBreaks: true,
     stripHtmlTags: true,
-    linkExtractionMode: 'anchor'
+    linkExtractionMode: 'anchor',
+    firstRowAsHeader: true,
+    filterEmptyData: false,
+    extractImages: false
 };
 
 export function useTableParser() {

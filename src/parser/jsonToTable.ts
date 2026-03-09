@@ -1,4 +1,5 @@
 import type { TableData, ParseOptions } from '../types';
+import { applyFilterEmptyData } from './utils';
 
 export function parseJsonTable(jsonString: string, options: ParseOptions): TableData[] {
     const trimmedInput = jsonString.trim();
@@ -40,7 +41,9 @@ export function parseJsonTable(jsonString: string, options: ParseOptions): Table
             rows = rows.map(r => r.map(c => c.replace(/\s+/g, ' ')));
         }
 
-        return [{
+        rows = [headers, ...rows];
+
+        let table: TableData = {
             id: crypto.randomUUID(),
             index: 1,
             rowCount: rows.length,
@@ -48,7 +51,13 @@ export function parseJsonTable(jsonString: string, options: ParseOptions): Table
             headers,
             rows,
             rawHtml: '' // Irrelevant for JSON parsing
-        }];
+        };
+
+        if (options.filterEmptyData) {
+            table = applyFilterEmptyData(table);
+        }
+
+        return [table];
 
     } catch (e) {
         console.warn("Failed to parse JSON string:", e);
