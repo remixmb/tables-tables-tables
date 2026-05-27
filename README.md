@@ -1,8 +1,12 @@
 # TableForge 🛠️
 
+**Live demo:** https://remixmb.github.io/tables-tables-tables/
+
 TableForge is a powerful, universal client-side data parser and converter. Paste in raw HTML, Markdown, CSV, or JSON and instantly convert it into a structured, editable Data Grid with advanced export and visualization capabilities.
 
 No data is ever stored on a server—everything runs instantly in your browser.
+
+![TableForge parsing an HTML table into export options and a revenue chart](docs/assets/tableforge-screenshot.png)
 
 ## Features ✨
 
