@@ -121,6 +121,15 @@ export function parseTable(table: HTMLTableElement, index: number, options: Pars
         finalRows = [headers, ...grid];
     }
 
+    // Infer column types from data rows (skip header row)
+    const dataRows = finalRows.slice(1);
+    const colTypes: TableData['colTypes'] = Array.from({ length: colCount }, (_, ci) => {
+        const values = dataRows.map(r => r[ci]).filter(v => v !== '' && v != null);
+        if (values.length === 0) return 'string';
+        const numericCount = values.filter(v => !isNaN(Number(v.replace(/,/g, '')))).length;
+        return numericCount / values.length >= 0.6 ? 'number' : 'string';
+    });
+
     let tableData: TableData = {
         id: `table-${index}`,
         index,
@@ -128,6 +137,7 @@ export function parseTable(table: HTMLTableElement, index: number, options: Pars
         colCount,
         headers,
         rows: finalRows,
+        colTypes,
         rawHtml: table.outerHTML
     };
 

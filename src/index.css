@@ -4,6 +4,12 @@
   body {
     @apply bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-200;
   }
+
+  input,
+  textarea,
+  [contenteditable="true"] {
+    caret-color: #6366f1;
+  }
 }
 
 @layer utilities {

@@ -1,7 +1,6 @@
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo } from 'react';
 import { TableProperties, ArrowRightLeft, Search, Replace, X, BarChart3, ArrowDownAZ, ArrowUpZA, Filter } from 'lucide-react';
 import { DataVisualization } from './DataVisualization';
-import { useVirtualizer } from '@tanstack/react-virtual';
 import type { TableData } from '../types';
 
 interface TablePreviewProps {
@@ -16,13 +15,56 @@ export function TablePreview({ table, onTableChange }: TablePreviewProps) {
     const [useRegex, setUseRegex] = useState(false);
     const [activeTab, setActiveTab] = useState<'data' | 'chart'>('data');
 
-    // For Virtualization
-    const parentRef = useRef<HTMLDivElement>(null);
-
     const [sortColumn, setSortColumn] = useState<number | null>(null);
     const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
     const [gridFilter, setGridFilter] = useState('');
     const [showGridFilter, setShowGridFilter] = useState(false);
+
+    // Derived rows based on Sort and Filter (View layer only, doesn't mutate actual TableData)
+    // NOTE: must be before the early return to satisfy Rules of Hooks
+    const displayedRows = useMemo(() => {
+        if (!table) return [];
+        let result = table.rows.slice(1);
+
+        // Apply Global Filter First
+        if (gridFilter.trim()) {
+            const lowerFilter = gridFilter.toLowerCase();
+            result = result.filter(row =>
+                row.some(cell => String(cell || '').toLowerCase().includes(lowerFilter))
+            );
+        }
+
+        // Apply Sort
+        if (sortColumn !== null) {
+            const colType = table.colTypes?.[sortColumn] || 'string';
+            result = [...result].sort((a, b) => {
+                const valA = a[sortColumn];
+                const valB = b[sortColumn];
+
+                // Handle empty cases
+                if (!valA && valB) return sortDirection === 'asc' ? 1 : -1;
+                if (valA && !valB) return sortDirection === 'asc' ? -1 : 1;
+                if (!valA && !valB) return 0;
+
+                let comparison = 0;
+                if (colType === 'number') {
+                    const numA = Number(valA);
+                    const numB = Number(valB);
+                    if (!isNaN(numA) && !isNaN(numB)) {
+                        comparison = numA - numB;
+                    } else {
+                        comparison = String(valA).localeCompare(String(valB));
+                    }
+                } else {
+                    comparison = String(valA).localeCompare(String(valB));
+                }
+
+                return sortDirection === 'asc' ? comparison : -comparison;
+            });
+        }
+
+        return result;
+    }, [table, sortColumn, sortDirection, gridFilter]);
 
     if (!table) {
         return (
@@ -110,58 +152,6 @@ export function TablePreview({ table, onTableChange }: TablePreviewProps) {
             setSortDirection('asc');
         }
     };
-
-    // Derived rows based on Sort and Filter (View layer only, doesn't mutate actual TableData)
-    const displayedRows = useMemo(() => {
-        let result = table.rows.slice(1);
-
-        // Apply Global Filter First
-        if (gridFilter.trim()) {
-            const lowerFilter = gridFilter.toLowerCase();
-            result = result.filter(row =>
-                row.some(cell => String(cell || '').toLowerCase().includes(lowerFilter))
-            );
-        }
-
-        // Apply Sort
-        if (sortColumn !== null) {
-            const colType = table.colTypes?.[sortColumn] || 'string';
-            result = [...result].sort((a, b) => {
-                const valA = a[sortColumn];
-                const valB = b[sortColumn];
-
-                // Handle empty cases
-                if (!valA && valB) return sortDirection === 'asc' ? 1 : -1;
-                if (valA && !valB) return sortDirection === 'asc' ? -1 : 1;
-                if (!valA && !valB) return 0;
-
-                let comparison = 0;
-                if (colType === 'number') {
-                    const numA = Number(valA);
-                    const numB = Number(valB);
-                    if (!isNaN(numA) && !isNaN(numB)) {
-                        comparison = numA - numB;
-                    } else {
-                        comparison = String(valA).localeCompare(String(valB));
-                    }
-                } else {
-                    comparison = String(valA).localeCompare(String(valB));
-                }
-
-                return sortDirection === 'asc' ? comparison : -comparison;
-            });
-        }
-
-        return result;
-    }, [table, sortColumn, sortDirection, gridFilter]);
-
-    // Setup Row Virtualizer
-    const rowVirtualizer = useVirtualizer({
-        count: displayedRows.length,
-        getScrollElement: () => parentRef.current,
-        estimateSize: () => 53, // Estimated height of a standard row (px)
-        overscan: 10, // Render 10 rows outside the viewport to prevent flickering when scrolling fast
-    });
 
     return (
         <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 flex flex-col h-full min-h-0 min-w-0 transition-colors duration-200">
@@ -283,8 +273,8 @@ export function TablePreview({ table, onTableChange }: TablePreviewProps) {
                     )}
 
                     <div
-                        ref={parentRef}
-                        className="flex-1 min-h-[400px] overflow-auto bg-white dark:bg-slate-900 p-0 relative rounded-b-xl custom-scrollbar"
+                        className="flex-1 overflow-auto bg-white dark:bg-slate-900 p-0 relative rounded-b-xl custom-scrollbar"
+                        style={{ maxHeight: 'calc(100vh - 18rem)' }}
                     >
                         <div className="inline-block min-w-full align-top">
                             <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-800 border-collapse">
@@ -294,7 +284,7 @@ export function TablePreview({ table, onTableChange }: TablePreviewProps) {
                                             <th
                                                 key={idx}
                                                 scope="col"
-                                                className="group px-0 py-0 text-left text-xs font-medium text-slate-600 dark:text-slate-300 uppercase tracking-wider border-r border-slate-200 dark:border-slate-800 last:border-r-0 whitespace-nowrap bg-indigo-50/95 dark:bg-slate-800/95 backdrop-blur-sm focus-within:bg-indigo-100 dark:focus-within:bg-slate-700 transition-colors relative"
+                                                className="group px-0 py-0 text-left text-xs font-medium text-slate-600 dark:text-slate-300 uppercase tracking-wider border-r border-slate-200 dark:border-slate-800 last:border-r-0 whitespace-nowrap bg-indigo-50/95 dark:bg-slate-800/95 backdrop-blur-sm focus-within:bg-indigo-100 dark:focus-within:bg-slate-700 transition-colors relative min-w-[180px]"
                                             >
                                                 <div className="flex items-center w-full h-full min-h-[44px]">
                                                     <div
@@ -321,34 +311,19 @@ export function TablePreview({ table, onTableChange }: TablePreviewProps) {
                                         ))}
                                     </tr>
                                 </thead>
-                                <tbody
-                                    className="bg-white dark:bg-slate-900 block"
-                                    style={{
-                                        position: 'relative',
-                                        height: `${rowVirtualizer.getTotalSize()}px`,
-                                        width: '100%',
-                                    }}
-                                >
-                                    {rowVirtualizer.getVirtualItems().map((virtualRow) => {
-                                        const row = displayedRows[virtualRow.index];
-                                        // We need to map the visual row index back to the absolute table row index for editing.
+                                <tbody className="bg-white dark:bg-slate-900 divide-y divide-slate-200 dark:divide-slate-800">
+                                    {displayedRows.map((row, rowIndex) => {
                                         const absoluteIndex = table.rows.findIndex(r => r === row);
                                         const dataRowIndex = absoluteIndex - 1;
-
                                         return (
                                             <tr
-                                                key={virtualRow.index}
-                                                className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors absolute w-full flex"
-                                                style={{
-                                                    top: 0,
-                                                    left: 0,
-                                                    transform: `translateY(${virtualRow.start}px)`,
-                                                }}
+                                                key={rowIndex}
+                                                className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
                                             >
                                                 {table.headers.map((_, colIndex) => (
                                                     <td
                                                         key={colIndex}
-                                                        className="px-6 py-4 text-sm text-slate-700 dark:text-slate-300 border-b border-r border-slate-200 dark:border-slate-800 last:border-r-0 max-w-xs truncate focus:outline-none focus:bg-indigo-50/50 dark:focus:bg-slate-700/50 transition-colors flex-1"
+                                                        className="px-6 py-3 text-sm text-slate-700 dark:text-slate-300 border-r border-slate-200 dark:border-slate-800 last:border-r-0 overflow-hidden truncate focus:outline-none focus:bg-indigo-50/50 dark:focus:bg-slate-700/50 transition-colors min-w-[160px] max-w-xs"
                                                         title={row[colIndex] || ''}
                                                         contentEditable={!!onTableChange}
                                                         suppressContentEditableWarning
@@ -358,11 +333,11 @@ export function TablePreview({ table, onTableChange }: TablePreviewProps) {
                                                     </td>
                                                 ))}
                                             </tr>
-                                        )
+                                        );
                                     })}
                                     {displayedRows.length === 0 && (
-                                        <tr className="flex w-full absolute items-center justify-center p-8">
-                                            <td colSpan={table.colCount} className="text-center text-sm text-slate-500 dark:text-slate-400 italic">
+                                        <tr>
+                                            <td colSpan={table.colCount} className="text-center text-sm text-slate-500 dark:text-slate-400 italic px-6 py-8">
                                                 No data rows found in this table.
                                             </td>
                                         </tr>

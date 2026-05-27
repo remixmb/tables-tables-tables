@@ -1,4 +1,4 @@
-import { useMemo, useState, useRef } from 'react';
+import { useMemo, useState, useRef, useEffect } from 'react';
 import type { TableData } from '../types';
 import {
     BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend,
@@ -40,6 +40,12 @@ export function DataVisualization({ table }: DataVisualizationProps) {
     // Track selected axes
     const [selectedX, setSelectedX] = useState<number | ''>(xAxisOptions.length > 0 ? xAxisOptions[0].index : '');
     const [selectedY, setSelectedY] = useState<number | ''>(yAxisOptions.length > 0 ? yAxisOptions[0].index : '');
+
+    // Reset selections whenever the table changes (new columns = new options)
+    useEffect(() => {
+        setSelectedX(xAxisOptions.length > 0 ? xAxisOptions[0].index : '');
+        setSelectedY(yAxisOptions.length > 0 ? yAxisOptions[0].index : '');
+    }, [xAxisOptions, yAxisOptions]);
 
     // Transform table data for Recharts
     const chartData = useMemo(() => {
