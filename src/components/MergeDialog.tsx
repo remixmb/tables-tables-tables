@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { X, GitMerge, FilePlus2 } from 'lucide-react';
 import type { TableData } from '../types';
 
@@ -12,23 +12,19 @@ interface MergeDialogProps {
 export function MergeDialog({ tables, isOpen, onClose, onMerge }: MergeDialogProps) {
     const [tableAId, setTableAId] = useState<string>('');
     const [tableBId, setTableBId] = useState<string>('');
-    const [joinKeyA, setJoinKeyA] = useState<string>('');
-    const [joinKeyB, setJoinKeyB] = useState<string>('');
+    const [requestedJoinKeyA, setJoinKeyA] = useState<string>('');
+    const [requestedJoinKeyB, setJoinKeyB] = useState<string>('');
     const [joinType, setJoinType] = useState<'inner' | 'left'>('inner');
 
     const tableA = useMemo(() => tables.find(t => t.id === tableAId), [tables, tableAId]);
     const tableB = useMemo(() => tables.find(t => t.id === tableBId), [tables, tableBId]);
 
-    // Attempt to auto-select matching column names if table A or B changes
-    React.useEffect(() => {
-        if (tableA && tableB && !joinKeyA && !joinKeyB) {
-            const commonHeader = tableA.headers.find(h => tableB.headers.includes(h));
-            if (commonHeader) {
-                setJoinKeyA(commonHeader);
-                setJoinKeyB(commonHeader);
-            }
-        }
-    }, [tableA, tableB, joinKeyA, joinKeyB]);
+    const commonHeader = useMemo(
+        () => tableA?.headers.find(header => tableB?.headers.includes(header)) ?? '',
+        [tableA, tableB]
+    );
+    const joinKeyA = tableA?.headers.includes(requestedJoinKeyA) ? requestedJoinKeyA : commonHeader;
+    const joinKeyB = tableB?.headers.includes(requestedJoinKeyB) ? requestedJoinKeyB : commonHeader;
 
     if (!isOpen) return null;
 
@@ -211,7 +207,7 @@ export function MergeDialog({ tables, isOpen, onClose, onMerge }: MergeDialogPro
                                             name="joinType"
                                             value="inner"
                                             checked={joinType === 'inner'}
-                                            onChange={(e) => setJoinType(e.target.value as any)}
+                                            onChange={() => setJoinType('inner')}
                                             className="text-indigo-600 focus:ring-indigo-500 dark:bg-slate-800 dark:border-slate-700"
                                         />
                                         Inner Join (Intersection)
@@ -222,7 +218,7 @@ export function MergeDialog({ tables, isOpen, onClose, onMerge }: MergeDialogPro
                                             name="joinType"
                                             value="left"
                                             checked={joinType === 'left'}
-                                            onChange={(e) => setJoinType(e.target.value as any)}
+                                            onChange={() => setJoinType('left')}
                                             className="text-indigo-600 focus:ring-indigo-500 dark:bg-slate-800 dark:border-slate-700"
                                         />
                                         Left Join (Include all A)

@@ -1,11 +1,10 @@
-import { useMemo, useState, useRef, useEffect } from 'react';
+import { useMemo, useState, useRef } from 'react';
 import type { TableData } from '../types';
 import {
     BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend,
     LineChart, Line, PieChart, Pie, Cell, AreaChart, Area, ScatterChart, Scatter
 } from 'recharts';
 import { BarChart3, LineChart as LineChartIcon, PieChart as PieChartIcon, AreaChart as AreaChartIcon, Download } from 'lucide-react';
-import html2canvas from 'html2canvas';
 
 const COLORS = ['#4f46e5', '#ec4899', '#f59e0b', '#10b981', '#6366f1', '#8b5cf6', '#ef4444', '#14b8a6'];
 
@@ -38,25 +37,25 @@ export function DataVisualization({ table }: DataVisualizationProps) {
     }, [table]);
 
     // Track selected axes
-    const [selectedX, setSelectedX] = useState<number | ''>(xAxisOptions.length > 0 ? xAxisOptions[0].index : '');
-    const [selectedY, setSelectedY] = useState<number | ''>(yAxisOptions.length > 0 ? yAxisOptions[0].index : '');
-
-    // Reset selections whenever the table changes (new columns = new options)
-    useEffect(() => {
-        setSelectedX(xAxisOptions.length > 0 ? xAxisOptions[0].index : '');
-        setSelectedY(yAxisOptions.length > 0 ? yAxisOptions[0].index : '');
-    }, [xAxisOptions, yAxisOptions]);
+    const [requestedX, setSelectedX] = useState<number | null>(null);
+    const [requestedY, setSelectedY] = useState<number | null>(null);
+    const selectedX = requestedX !== null && xAxisOptions.some(option => option.index === requestedX)
+        ? requestedX
+        : xAxisOptions[0]?.index;
+    const selectedY = requestedY !== null && yAxisOptions.some(option => option.index === requestedY)
+        ? requestedY
+        : yAxisOptions[0]?.index;
 
     // Transform table data for Recharts
     const chartData = useMemo(() => {
-        if (selectedX === '' || selectedY === '') return [];
+        if (selectedX === undefined || selectedY === undefined) return [];
 
-        const xKey = table.headers[selectedX as number] || 'X';
-        const yKey = table.headers[selectedY as number] || 'Y';
+        const xKey = table.headers[selectedX] || 'X';
+        const yKey = table.headers[selectedY] || 'Y';
 
         return table.rows.slice(1).map((row, idx) => {
-            const xVal = row[selectedX as number];
-            const yVal = Number(row[selectedY as number]);
+            const xVal = row[selectedX];
+            const yVal = Number(row[selectedY]);
 
             return {
                 id: idx,
@@ -79,13 +78,14 @@ export function DataVisualization({ table }: DataVisualizationProps) {
         );
     }
 
-    const xKey = typeof selectedX === 'number' ? table.headers[selectedX] : '';
-    const yKey = typeof selectedY === 'number' ? table.headers[selectedY] : '';
+    const xKey = selectedX !== undefined ? table.headers[selectedX] : '';
+    const yKey = selectedY !== undefined ? table.headers[selectedY] : '';
 
     const handleExportImage = async () => {
         if (!chartRef.current) return;
         try {
             setIsExporting(true);
+            const { default: html2canvas } = await import('html2canvas');
             const canvas = await html2canvas(chartRef.current, {
                 backgroundColor: document.documentElement.classList.contains('dark') ? '#0f172a' : '#ffffff',
                 scale: 2 // Higher resolution
@@ -149,7 +149,7 @@ export function DataVisualization({ table }: DataVisualizationProps) {
                     <div className="flex items-center gap-2">
                         <label className="text-xs font-semibold text-slate-500 uppercase">X-Axis:</label>
                         <select
-                            value={selectedX}
+                            value={selectedX ?? ''}
                             onChange={(e) => setSelectedX(Number(e.target.value))}
                             className="text-sm bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 dark:text-slate-200"
                         >
@@ -162,7 +162,7 @@ export function DataVisualization({ table }: DataVisualizationProps) {
                     <div className="flex items-center gap-2">
                         <label className="text-xs font-semibold text-slate-500 uppercase">Y-Axis (Value):</label>
                         <select
-                            value={selectedY}
+                            value={selectedY ?? ''}
                             onChange={(e) => setSelectedY(Number(e.target.value))}
                             className="text-sm bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 dark:text-slate-200"
                         >

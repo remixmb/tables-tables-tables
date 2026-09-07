@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import type { TableData } from './types';
 import { Table, Trash2 } from 'lucide-react';
 import { InputPanel } from './components/InputPanel';
 import { OptionsPanel } from './components/OptionsPanel';
@@ -25,12 +26,14 @@ function App() {
     clearSession
   } = useTableParser();
 
-  const [editableTable, setEditableTable] = useState(selectedTable);
+  const [tableEdits, setTableEdits] = useState<Record<string, TableData>>({});
   const [isMergeOpen, setIsMergeOpen] = useState(false);
 
-  useEffect(() => {
-    setEditableTable(selectedTable);
-  }, [selectedTable]);
+  const editableTable = selectedTable ? tableEdits[selectedTable.id] ?? selectedTable : null;
+
+  const updateEditableTable = (table: TableData) => {
+    setTableEdits(current => ({ ...current, [table.id]: table }));
+  };
 
   return (
     <div className="min-h-screen bg-slate-100 dark:bg-slate-950 flex flex-col font-sans transition-colors duration-200">
@@ -53,6 +56,7 @@ function App() {
               onClick={() => {
                 if (window.confirm('Are you sure you want to clear your session? All parsed data and options will be lost.')) {
                   clearSession();
+                  setTableEdits({});
                 }
               }}
               className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors focus:ring-2 focus:ring-red-500 outline-none"
@@ -95,7 +99,7 @@ function App() {
             <ExportPanel table={editableTable} />
           </div>
           <div className="flex-1 min-h-[400px] lg:min-h-0 min-w-0 overflow-hidden">
-            <TablePreview table={editableTable} onTableChange={setEditableTable} />
+            <TablePreview table={editableTable} onTableChange={updateEditableTable} />
           </div>
         </div>
       </main>

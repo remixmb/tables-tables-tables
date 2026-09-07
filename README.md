@@ -1,67 +1,58 @@
-# TableForge 🛠️
+# TableForge
 
-**Live demo:** https://remixmb.github.io/tables-tables-tables/
+[Live demo](https://remixmb.github.io/tables-tables-tables/) · [Quality checks](https://github.com/remixmb/tables-tables-tables/actions/workflows/ci.yml)
 
-TableForge is a powerful, universal client-side data parser and converter. Paste in raw HTML, Markdown, CSV, or JSON and instantly convert it into a structured, editable Data Grid with advanced export and visualization capabilities.
-
-No data is ever stored on a server—everything runs instantly in your browser.
+TableForge is a private-by-default browser workspace for messy tabular data. Paste HTML, Markdown, CSV, TSV, or JSON; inspect and edit the result; then export it as CSV, TSV, JSON, Markdown, SQL, XLSX, or an image. Input stays in the browser—there is no application server or analytics layer.
 
 ![TableForge parsing an HTML table into export options and a revenue chart](docs/assets/tableforge-screenshot.png)
 
-## Features ✨
+## Why this project
 
-### 📥 Multi-Format Parsing
-*   **HTML**: Automatically extracts tables from raw `<table>` markup, handling messy code, complex `colspan`/`rowspan` merges, and hidden elements.
-*   **CSV / TSV**: Fast delimiter-separated value parsing powered by PapaParse.
-*   **JSON**: Intelligently flattens JSON object arrays into structured tabular data.
-*   **Markdown**: Converts GitHub-flavored Markdown tables into actionable data arrays.
+Moving a table between a webpage, a spreadsheet, a database, and documentation is usually a trail of one-off scripts. TableForge puts that cleanup loop in one inspectable interface and keeps sensitive source data client-side.
 
-### 🧠 Smart Auto-Detection
-*   Automatically infers column data types (`string`, `number`, `boolean`) by analyzing your dataset (`dynamicTyping`).
-*   Correctly casts data for specialized SQL creation.
+## Engineering highlights
 
-### ✏️ Interactive Data Grid
-*   **Blazing Fast Edits**: A robust React `contentEditable` grid that skips render lag, letting you modify cells directly.
-*   **Data Transposition**: Flip columns and rows geometrically with one click.
-*   **Regex Find & Replace**: Execute complex String or Regular Expression replacements specifically on your data rows before you export.
+- Four independently tested parsers normalize HTML, Markdown, CSV/TSV, and JSON into one typed table model.
+- The HTML parser handles `rowspan`, `colspan`, nested markup, links, images, hidden elements, and configurable cleanup.
+- The editable grid supports virtualized rendering, transpose, regex replacement, table joins, and inferred column types.
+- Exports escape SQL strings and Markdown delimiters and generate real `.xlsx` workbooks in the browser.
+- Charts are derived from compatible numeric columns; source data never leaves the page.
+- Visualization and XLSX code load only when requested, keeping the initial workspace bundle focused on parsing and editing.
 
-### 📊 Built-in Data Visualization
-Instantly map your quantitative data into interactive charts. TableForge dynamically scans inferred `ColumnTypes` to locate viable numerical Data Keys for Recharts integration.
-*   Bar Charts 📊
-*   Line Charts 📈
-*   Pie Charts 🥧
-
-### 📤 Advanced Export Formats
-*   Copy to Clipboard (Raw Tab-Separated Data)
-*   Export as JSON Array
-*   Export as Markdown Table
-*   Generate raw SQL `INSERT` statements using dynamically inferred column types and auto-escaped quotes.
-*   Download true `.xlsx` Application Excel files powered by `exceljs`.
-
-### ⚙️ Parsing Options
-*   **Filter Empty Data**: Silently drop blank columns to condense your grid.
-*   **First Row as Header**: Toggle dynamic header discovery.
-*   **Format Cleanup**: Remove Line Breaks, Trim Whitespace, Strip nested HTML tags.
-*   **Rich Data Extraction**: Extract Hyperlinks (`href` vs `anchor` text) and Image attributes directly from messy HTML layouts.
-
-## Development
+## Quality
 
 ```bash
-# Install dependencies
-npm install
+npm ci
+npm run check
+```
 
-# Start local dev server
+`check` runs ESLint, the Vitest parser/export suite, TypeScript compilation, and the production Vite build. GitHub Actions runs the same gate on pushes and pull requests.
+
+## Local development
+
+```bash
+npm ci
 npm run dev
-
-# Run Vitest test suite
-npm run test
-
-# Build for production
-npm run build
 ```
 
-## Deployment
-Deployment is handled via the `gh-pages` branch.
+The production build uses a relative asset base so it can run on GitHub Pages:
+
 ```bash
-npm run deploy
+npm run build
+npm run preview
 ```
+
+## Architecture
+
+```text
+src/parser/    format-specific normalization and tests
+src/hooks/     browser session and derived selection state
+src/components editable grid, merge, export, and visualization UI
+src/exporter/  serialized and downloadable output formats
+```
+
+The application is intentionally client-only. That trades collaborative storage and server-side processing for a smaller privacy boundary and a deployable static artifact.
+
+## License
+
+MIT — see [LICENSE](LICENSE).

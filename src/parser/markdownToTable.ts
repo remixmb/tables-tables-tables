@@ -25,7 +25,7 @@ export function parseMarkdownTable(markdownString: string, options: ParseOptions
         if (!cleaned.includes('|') && !cleaned.includes('-')) return false;
 
         // Remove pipes and spaces, if only dashes and colons remain, it's a separator
-        const stripped = cleaned.replace(/[\|\s:]/g, '');
+        const stripped = cleaned.replace(/[|\s:]/g, '');
         return stripped.length > 0 && stripped.split('').every(char => char === '-');
     };
 
@@ -48,7 +48,7 @@ export function parseMarkdownTable(markdownString: string, options: ParseOptions
             if (isParsingTable && currentTableRows.length > 0) {
                 let headers: string[] = [];
                 let rows: string[][] = [];
-                let maxCols = Math.max(...currentTableRows.map(r => r.length), 0);
+                const maxCols = Math.max(...currentTableRows.map(r => r.length), 0);
 
                 // pad rows
                 const paddedRows = currentTableRows.map(row => {
@@ -86,7 +86,7 @@ export function parseMarkdownTable(markdownString: string, options: ParseOptions
     if (isParsingTable && currentTableRows.length > 0) {
         let headers: string[] = [];
         let rows: string[][] = [];
-        let maxCols = Math.max(...currentTableRows.map(r => r.length), 0);
+        const maxCols = Math.max(...currentTableRows.map(r => r.length), 0);
 
         // pad rows
         const paddedRows = currentTableRows.map(row => {

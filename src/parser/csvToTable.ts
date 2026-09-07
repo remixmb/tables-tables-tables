@@ -8,7 +8,7 @@ export function parseCsvTable(csvString: string, options: ParseOptions): TableDa
 
     // Use PapaParse to handle all CSV edge cases
     // Note: dynamicTyping helps us infer Column Types (number, boolean)
-    const { data, errors } = Papa.parse<any[]>(trimmedInput, {
+    const { data, errors } = Papa.parse<unknown[]>(trimmedInput, {
         header: false,
         skipEmptyLines: true,
         dynamicTyping: true

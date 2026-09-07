@@ -1,5 +1,4 @@
 import Papa from 'papaparse';
-import ExcelJS from 'exceljs';
 import type { TableData } from '../types';
 
 export function exportToCsv(table: TableData): string {
@@ -86,9 +85,7 @@ export function exportToSql(table: TableData, tableName: string = 'imported_tabl
 }
 
 export async function exportToXlsx(table: TableData): Promise<Blob> {
-    const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('Sheet1');
-    worksheet.addRows(table.rows);
-    const buffer = await workbook.xlsx.writeBuffer();
-    return new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const { default: writeXlsxFile } = await import('write-excel-file/browser');
+    const sheet = table.rows.map(row => row.map(value => ({ value })));
+    return writeXlsxFile(sheet).toBlob();
 }

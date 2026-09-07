@@ -55,7 +55,7 @@ export function useTableParser() {
     const [inputType, setInputType] = useState<InputType>(initialState.inputType);
     const [options, setOptions] = useState<ParseOptions>(initialState.options);
     const [customTables, setCustomTables] = useState<TableData[]>(initialState.customTables);
-    const [selectedTableId, setSelectedTableId] = useState<string | null>(null);
+    const [requestedTableId, setSelectedTableId] = useState<string | null>(null);
 
     // Persist state changes to localStorage
     useEffect(() => {
@@ -102,20 +102,14 @@ export function useTableParser() {
         return [...parsedTables, ...customTables];
     }, [parsedTables, customTables]);
 
-    // Handle auto-selection when tables change
-    useEffect(() => {
-        if (tables.length === 0) {
-            setSelectedTableId(null);
-        } else if (selectedTableId) {
-            // Keep selected if still exists
-            const exists = tables.find(t => t.id === selectedTableId);
-            if (!exists) {
-                setSelectedTableId(tables[0].id);
-            }
-        } else {
-            setSelectedTableId(tables[0].id);
+    // Selection is derived from the current tables instead of synchronized in an effect.
+    // This avoids an extra render whenever parsed input replaces the selected table.
+    const selectedTableId = useMemo(() => {
+        if (requestedTableId && tables.some(table => table.id === requestedTableId)) {
+            return requestedTableId;
         }
-    }, [tables, selectedTableId]);
+        return tables[0]?.id ?? null;
+    }, [requestedTableId, tables]);
 
     const selectedTable = useMemo(() => {
         return tables.find(t => t.id === selectedTableId) || null;

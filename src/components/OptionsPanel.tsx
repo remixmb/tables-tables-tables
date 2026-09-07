@@ -8,7 +8,7 @@ interface OptionsPanelProps {
 }
 
 export function OptionsPanel({ options, onChange, inputType }: OptionsPanelProps) {
-    const handleChange = (key: keyof ParseOptions, value: any) => {
+    const handleChange = <Key extends keyof ParseOptions>(key: Key, value: ParseOptions[Key]) => {
         onChange({ ...options, [key]: value });
     };
 

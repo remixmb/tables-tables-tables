@@ -1,7 +1,10 @@
-import { useState, useMemo } from 'react';
+import { lazy, Suspense, useState, useMemo } from 'react';
 import { TableProperties, ArrowRightLeft, Search, Replace, X, BarChart3, ArrowDownAZ, ArrowUpZA, Filter } from 'lucide-react';
-import { DataVisualization } from './DataVisualization';
 import type { TableData } from '../types';
+
+const DataVisualization = lazy(() => import('./DataVisualization').then(module => ({
+    default: module.DataVisualization
+})));
 
 interface TablePreviewProps {
     table: TableData | null;
@@ -349,7 +352,9 @@ export function TablePreview({ table, onTableChange }: TablePreviewProps) {
                 </>
             ) : (
                 <div className="flex-1 min-h-0 min-w-0 overflow-auto bg-white dark:bg-slate-900 rounded-b-xl relative custom-scrollbar">
-                    <DataVisualization table={table} />
+                    <Suspense fallback={<p className="p-6 text-sm text-slate-500">Loading visualization…</p>}>
+                        <DataVisualization table={table} />
+                    </Suspense>
                 </div>
             )}
         </div>
